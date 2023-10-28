@@ -18,7 +18,7 @@ return static function() {
         given(Set\Elements::of('amqp.pdf', 'symfony.log')),
         static function($assert, $name) {
             $clock = new Earth\Clock;
-            $path = \sys_get_temp_dir().'innmind/encoding/';
+            $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('fixtures/'));
             $tar = $adapter
@@ -64,7 +64,7 @@ return static function() {
         'Tar encoding a directory',
         static function($assert) {
             $clock = new Earth\Clock;
-            $path = \sys_get_temp_dir().'innmind/encoding/';
+            $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('./'));
             $tar = $adapter
