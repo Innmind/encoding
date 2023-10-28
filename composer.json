@@ -1,0 +1,30 @@
+{
+    "name": "innmind/encoding",
+    "type": "library",
+    "description": "",
+    "keywords": ["encoding", "gzip", "deflate"],
+    "homepage": "http://github.com/innmind/encoding",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "baptiste.langlade@hey.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/innmind/encoding/issues"
+    },
+    "require": {
+        "php": "~8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Innmind\\Encoding\\": "src/"
+        }
+    },
+    "require-dev": {
+        "vimeo/psalm": "~5.0",
+        "innmind/black-box": "~5.5",
+        "innmind/coding-standard": "~2.0"
+    }
+}
