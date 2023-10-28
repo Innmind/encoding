@@ -15,7 +15,9 @@
         "issues": "http://github.com/innmind/encoding/issues"
     },
     "require": {
-        "php": "~8.2"
+        "php": "~8.2",
+        "innmind/immutable": "~5.1",
+        "innmind/filesystem": "~7.1"
     },
     "autoload": {
         "psr-4": {
