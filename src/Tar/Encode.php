@@ -122,7 +122,9 @@ final class Encode
     }
 
     /**
-     * @param class-string(File)|class-string(Directory) $type
+     * @param class-string<File>|class-string<Directory> $type
+     *
+     * @return Sequence<Str>
      */
     private function header(
         Str $path,
