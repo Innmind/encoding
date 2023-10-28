@@ -103,4 +103,24 @@ return static function() {
             );
         },
     );
+
+    yield proof(
+        'Gzip compression always produce the same result',
+        given(
+            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
+                ->map(\file_get_contents(...)),
+        ),
+        static function($assert, $file) {
+            $content = Content::ofString($file);
+            $compress = Gzip::compress();
+
+            $compressed1 = $compress($content);
+            $compressed2 = $compress($content);
+
+            $assert->same(
+                $compressed1->toString(),
+                $compressed2->toString(),
+            );
+        },
+    );
 };
