@@ -2,7 +2,12 @@
 declare(strict_types = 1);
 
 use Innmind\Encoding\Gzip;
-use Innmind\Filesystem\File\Content;
+use Innmind\Filesystem\{
+    Adapter\Filesystem,
+    File\Content,
+    Name,
+};
+use Innmind\Url\Path;
 use Innmind\Immutable\{
     Monoid\Concat,
     Str\Encoding,
@@ -120,6 +125,51 @@ return static function() {
             $assert->same(
                 $compressed1->toString(),
                 $compressed2->toString(),
+            );
+        },
+    );
+
+    yield proof(
+        'Gzip file compression',
+        given(Set\Elements::of('symfony.log', 'amqp.pdf')->map(Name::of(...))),
+        static function($assert, $name) {
+            $adapter = Filesystem::mount(Path::of('fixtures/'));
+            $original = $adapter->get($name)->match(
+                static fn($file) => $file,
+                static fn() => null,
+            );
+
+            $assert->not()->null($original);
+
+            $compress = Gzip::compress();
+            $decompress = Gzip::decompress();
+
+            $compressed = $compress($original);
+
+            $assert
+                ->string($compressed->name()->toString())
+                ->startsWith($name->toString())
+                ->endsWith('.gz');
+            $assert->same(
+                'application/gzip',
+                $compressed->mediaType()->toString(),
+            );
+            $assert
+                ->number($compressed->content()->size()->match(
+                    static fn($size) => $size->toInt(),
+                    static fn() => null,
+                ))
+                ->lessThan($original->content()->size()->match(
+                    static fn($size) => $size->toInt(),
+                    static fn() => null,
+                ));
+
+            $decompressed = $decompress($compressed);
+
+            $assert->same($name->toString(), $decompressed->name()->toString());
+            $assert->same(
+                $original->content()->toString(),
+                $decompressed->content()->toString(),
             );
         },
     );

@@ -7,7 +7,10 @@ use Innmind\Encoding\Gzip\Decompress\{
     Context,
     Chunk,
 };
-use Innmind\Filesystem\File\Content;
+use Innmind\Filesystem\{
+    File,
+    File\Content,
+};
 use Innmind\Immutable\{
     Sequence,
     Str,
@@ -23,19 +26,20 @@ final class Decompress
     }
 
     /**
-     * @template T of Content|Sequence<Str>
+     * @template T of File|Content|Sequence<Str>
      *
      * @param T $content
      *
      * @return T
      */
-    public function __invoke(Content|Sequence $content): Content|Sequence
+    public function __invoke(File|Content|Sequence $content): File|Content|Sequence
     {
         /**
          * @psalm-suppress PossiblyInvalidArgument For some reason it doesn't understand the Sequence check
          * @var T
          */
         return match (true) {
+            $content instanceof File => $this->decompressFile($content),
             $content instanceof Content => $this->decompressContent($content),
             $content instanceof Sequence => $this->decompressChunks($content),
         };
@@ -47,6 +51,20 @@ final class Decompress
     public static function max(): self
     {
         return new self;
+    }
+
+    private function decompressFile(File $file): File
+    {
+        $name = $file->name()->str();
+
+        /** @psalm-suppress ArgumentTypeCoercion */
+        return File::named(
+            match ($name->endsWith('.gz') && $name->length() !== 3) {
+                true => $name->dropEnd(3)->toString(),
+                false => $name->toString(),
+            },
+            $this->decompressContent($file->content()),
+        );
     }
 
     private function decompressContent(Content $content): Content
