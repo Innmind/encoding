@@ -127,7 +127,7 @@ return static function() {
         'Tar supports names longer than 100 characters',
         given(
             Set\Strings::madeOf(Set\Chars::alphanumerical())
-                ->between(101, 252) // not 255 because it needs to append '.gz'
+                ->between(101, 251) // not 255 because it needs to append '.tar'
                 ->map(Name::of(...)),
             Set\Strings::madeOf(Set\Chars::alphanumerical())
                 ->between(200, 255)
