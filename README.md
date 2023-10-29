@@ -22,7 +22,18 @@ Take a look at the [documentation](documentation/README.md) for a more in-depth 
 ### Creating an archive of a directory
 
 ```php
-$adapter = Adapter::mount(Path::of('some/directory/'));
+use Innmind\Filesystem\{
+    Adapter\Filesystem,
+    Name,
+};
+use Innmind\TimeContinuum\Earth;
+use Innmind\Url\Path;
+use Innmind\Encoding\{
+    Gzip,
+    Tar,
+};
+
+$adapter = Filesystem::mount(Path::of('some/directory/'));
 $tar = $adapter
     ->get(Name::of('data'))
     ->map(Tar::encode(new Earth\Clock))
