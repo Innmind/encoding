@@ -15,7 +15,10 @@
         "issues": "http://github.com/innmind/encoding/issues"
     },
     "require": {
-        "php": "~8.2"
+        "php": "~8.2",
+        "innmind/immutable": "~5.1",
+        "innmind/filesystem": "~7.1",
+        "innmind/time-continuum": "~3.4"
     },
     "autoload": {
         "psr-4": {
@@ -23,7 +26,7 @@
         }
     },
     "require-dev": {
-        "vimeo/psalm": "~5.0",
+        "vimeo/psalm": "~5.15",
         "innmind/black-box": "~5.5",
         "innmind/coding-standard": "~2.0"
     }
