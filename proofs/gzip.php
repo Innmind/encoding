@@ -15,12 +15,11 @@ use Innmind\Immutable\{
 use Innmind\BlackBox\Set;
 
 return static function() {
+    $files = Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf');
+
     yield proof(
         'Gzip compression reduce content size',
-        given(
-            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
-                ->map(\file_get_contents(...)),
-        ),
+        given($files->map(\file_get_contents(...))),
         static function($assert, $file) {
             $content = Content::ofString($file);
             $compress = Gzip::compress();
@@ -41,10 +40,7 @@ return static function() {
 
     yield proof(
         'Gzip compression reduce chunks size',
-        given(
-            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
-                ->map(\file_get_contents(...)),
-        ),
+        given($files->map(\file_get_contents(...))),
         static function($assert, $file) {
             $content = Content::ofString($file)->chunks();
             $compress = Gzip::compress();
@@ -70,8 +66,7 @@ return static function() {
     yield proof(
         'Gzip compress/decompress returns the original content',
         given(Set\Either::any(
-            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
-                ->map(\file_get_contents(...)),
+            $files->map(\file_get_contents(...)),
             Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
         )),
         static function($assert, $file) {
@@ -91,8 +86,7 @@ return static function() {
     yield proof(
         'Gzip compress/decompress returns the original chunks',
         given(Set\Either::any(
-            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
-                ->map(\file_get_contents(...)),
+            $files->map(\file_get_contents(...)),
             Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
         )),
         static function($assert, $file) {
@@ -111,10 +105,7 @@ return static function() {
 
     yield proof(
         'Gzip compression always produce the same result',
-        given(
-            Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf')
-                ->map(\file_get_contents(...)),
-        ),
+        given($files->map(\file_get_contents(...))),
         static function($assert, $file) {
             $content = Content::ofString($file);
             $compress = Gzip::compress();
@@ -131,7 +122,11 @@ return static function() {
 
     yield proof(
         'Gzip file compression',
-        given(Set\Elements::of('symfony.log', 'amqp.pdf')->map(Name::of(...))),
+        given(
+            $files
+                ->map(static fn($name) => \substr($name, 9)) // removes 'fixtures/'
+                ->map(Name::of(...)),
+        ),
         static function($assert, $name) {
             $adapter = Filesystem::mount(Path::of('fixtures/'));
             $original = $adapter->get($name)->match(
