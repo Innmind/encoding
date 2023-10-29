@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\Encoding\Tar;
 
-use Innmind\Encoding\Exception\RuntimeException;
 use Innmind\Filesystem\{
     File,
     File\Content,
@@ -61,17 +60,37 @@ final class Encode
     /**
      * @return Sequence<Str>
      */
-    private function encode(Str $path, File|Directory $file): Sequence
-    {
-        if ($path->length() > 99) {
-            // todo implement @LongLink trick
-            throw new RuntimeException("'{$path->toString()}' is too long");
-        }
-
+    private function encode(
+        Str $path,
+        File|Directory $file,
+        bool $linkWritten = false,
+    ): Sequence {
         return match (true) {
+            !$linkWritten && $path->length() > 100 => $this->encodeLongFileName($path, $file),
             $file instanceof File => $this->encodeFile($path, $file),
             $file instanceof Directory => $this->encodeDirectory($path, $file),
         };
+    }
+
+    /**
+     * @return Sequence<Str>
+     */
+    private function encodeLongFileName(Str $path, File|Directory $file): Sequence
+    {
+        $header = $this->header(
+            Str::of('././@LongLink', Str\Encoding::ascii),
+            $path->length(),
+            'link',
+        );
+        $linkContent = $path
+            ->chunk(512)
+            ->map(static fn($chunk) => $chunk->map(
+                static fn($value) => \pack('a512', $value),
+            ));
+
+        return $header
+            ->append($linkContent)
+            ->append($this->encode($path, $file, true));
     }
 
     /**
@@ -122,7 +141,7 @@ final class Encode
     }
 
     /**
-     * @param class-string<File>|class-string<Directory> $type
+     * @param class-string<File>|class-string<Directory>|'link' $type
      *
      * @return Sequence<Str>
      */
@@ -133,7 +152,7 @@ final class Encode
     ): Sequence {
         $fileMode = match ($type) {
             File::class => 000644,
-            Directory::class => 000755,
+            Directory::class, 'link' => 000755,
         };
         $headerFirstPart = Str::of(
             \pack(
@@ -153,6 +172,7 @@ final class Encode
                 match ($type) {
                     File::class => '0',
                     Directory::class => '5',
+                    'link' => 'L',
                 }, // link indicator
                 '', // name of linked file
                 'ustar ', // format
