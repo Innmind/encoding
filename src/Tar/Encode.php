@@ -77,20 +77,19 @@ final class Encode
      */
     private function encodeLongFileName(Str $path, File|Directory $file): Sequence
     {
-        $header = $this->header(
-            Str::of('././@LongLink', Str\Encoding::ascii),
-            $path->length(),
-            'link',
-        );
         $linkContent = $path
             ->chunk(512)
             ->map(static fn($chunk) => $chunk->map(
                 static fn($value) => \pack('a512', $value),
             ));
 
-        return $header
-            ->append($linkContent)
-            ->append($this->encode($path, $file, true));
+        return $linkContent
+            ->append($this->encode($path, $file, true))
+            ->prepend($this->header(
+                Str::of('././@LongLink', Str\Encoding::ascii),
+                $path->length(),
+                'link',
+            ));
     }
 
     /**
@@ -110,17 +109,16 @@ final class Encode
                     static fn(int $sum, int $length) => $sum + $length,
                 ),
         );
-        $header = $this->header($path, $size, File::class);
 
-        return $header->append(
-            $file
-                ->content()
-                ->chunks()
-                ->map(static fn($chunk) => $chunk->toEncoding(Str\Encoding::ascii))
-                ->aggregate(static fn(Str $a, Str $b) => $a->append($b)->chunk(512))
-                ->map(static fn($chunk) => \pack('a512', $chunk->toString()))
-                ->map(static fn($chunk) => Str::of($chunk, Str\Encoding::ascii)),
-        );
+        return $file
+            ->content()
+            ->chunks()
+            ->map(static fn($chunk) => $chunk->toEncoding(Str\Encoding::ascii))
+            ->aggregate(static fn(Str $a, Str $b) => $a->append($b)->chunk(512))
+            ->flatMap(static fn($str) => $str->chunk(512)) // in case there is only one line
+            ->map(static fn($chunk) => \pack('a512', $chunk->toString()))
+            ->map(static fn($chunk) => Str::of($chunk, Str\Encoding::ascii))
+            ->prepend($this->header($path, $size, File::class));
     }
 
     /**
@@ -128,16 +126,13 @@ final class Encode
      */
     private function encodeDirectory(Str $parent, Directory $directory): Sequence
     {
-        $header = $this->header($parent, 0, Directory::class);
-
-        $files = $directory
+        return $directory
             ->all()
             ->flatMap(fn($file) => $this->encode(
                 $parent->append('/')->append($file->name()->str()),
                 $file,
-            ));
-
-        return $header->append($files);
+            ))
+            ->prepend($this->header($parent, 0, Directory::class));
     }
 
     /**
@@ -162,7 +157,7 @@ final class Encode
                 \sprintf('%07s', \decoct(0)), // user id
                 \sprintf('%07s', \decoct(0)), // group id
                 \sprintf('%011s', \decoct($size)), // file size
-                \sprintf('%011s', \decoct($this->clock->now()->milliseconds())), // file last modification time
+                \sprintf('%011s', \decoct((int) ($this->clock->now()->milliseconds() / 1000))), // file last modification time
             ),
             Str\Encoding::ascii,
         );
