@@ -163,7 +163,7 @@ final class Encode
                 \sprintf('%07s', \decoct(0)), // user id
                 \sprintf('%07s', \decoct(0)), // group id
                 \sprintf('%011s', \decoct($size)), // file size
-                \sprintf('%011s', \decoct($this->clock->now()->milliseconds())), // file last modification time
+                \sprintf('%011s', \decoct((int) ($this->clock->now()->milliseconds() / 1000))), // file last modification time
             ),
             Str\Encoding::ascii,
         );
