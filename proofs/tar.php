@@ -10,7 +10,10 @@ use Innmind\Filesystem\{
 };
 use Innmind\TimeContinuum\Earth;
 use Innmind\Url\Path;
-use Innmind\Immutable\Predicate\Instance;
+use Innmind\Immutable\{
+    Str,
+    Predicate\Instance,
+};
 use Innmind\BlackBox\Set;
 use Fixtures\Innmind\Filesystem\{
     Directory as FDirectory,
@@ -193,10 +196,18 @@ return static function() {
 
     yield proof(
         'Tar encode any shape of file/directory',
-        given(Set\Either::any(
-            FFile::any(),
-            FDirectory::any(),
-        )),
+        given(
+            Set\Either::any(
+                FFile::any(),
+                FDirectory::any(),
+            )->filter(
+                static fn($file) => $file
+                    ->name()
+                    ->str()
+                    ->toEncoding(Str\Encoding::ascii)
+                    ->length() < 251, // otherwise the `.tar` extension will overflow
+            ),
+        ),
         static function($assert, $file) {
             $clock = new Earth\Clock;
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
