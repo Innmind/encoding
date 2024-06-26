@@ -200,13 +200,20 @@ return static function() {
             Set\Either::any(
                 FFile::any(),
                 FDirectory::any(),
-            )->filter(
-                static fn($file) => $file
-                    ->name()
-                    ->str()
-                    ->toEncoding(Str\Encoding::ascii)
-                    ->length() < 251, // otherwise the `.tar` extension will overflow
-            ),
+            )
+                ->filter(
+                    static fn($file) => $file
+                        ->name()
+                        ->str()
+                        ->toEncoding(Str\Encoding::ascii)
+                        ->length() < 251, // otherwise the `.tar` extension will overflow
+                )
+                ->filter(
+                    static fn($file) => !$file
+                        ->name()
+                        ->str()
+                        ->contains(':'), // if preceded by a letter the tar command will remove the `:` as it interprets it as a windows drive path
+                ),
         ),
         static function($assert, $file) {
             $clock = new Earth\Clock;
