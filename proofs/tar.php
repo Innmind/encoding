@@ -213,6 +213,12 @@ return static function() {
                         ->name()
                         ->str()
                         ->contains(':'), // if preceded by a letter the tar command will remove the `:` as it interprets it as a windows drive path
+                )
+                ->filter(
+                    static fn($file) => !$file
+                        ->name()
+                        ->str()
+                        ->startsWith('\\'), // the tar command removes leading backslashes
                 ),
         ),
         static function($assert, $file) {
