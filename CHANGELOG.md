@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Requires `innmind/immutable:~5.7`
 - The laziness of the tar file is derived from the laziness of input files
 
 ### Fixed
