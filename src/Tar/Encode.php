@@ -118,6 +118,7 @@ final class Encode
                 ->chunks()
                 ->map(static fn($chunk) => $chunk->toEncoding(Str\Encoding::ascii))
                 ->aggregate(static fn(Str $a, Str $b) => $a->append($b)->chunk(512))
+                ->flatMap(static fn($str) => $str->chunk(512)) // in case there is only one line
                 ->map(static fn($chunk) => \pack('a512', $chunk->toString()))
                 ->map(static fn($chunk) => Str::of($chunk, Str\Encoding::ascii)),
         );
