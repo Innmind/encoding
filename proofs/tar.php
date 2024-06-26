@@ -5,12 +5,17 @@ use Innmind\Encoding\Tar;
 use Innmind\Filesystem\{
     Adapter\Filesystem,
     Name,
+    File,
     Directory,
 };
 use Innmind\TimeContinuum\Earth;
 use Innmind\Url\Path;
 use Innmind\Immutable\Predicate\Instance;
 use Innmind\BlackBox\Set;
+use Fixtures\Innmind\Filesystem\{
+    Directory as FDirectory,
+    File as FFile,
+};
 
 return static function() {
     yield proof(
@@ -183,6 +188,62 @@ return static function() {
                         static fn() => null,
                     ),
             );
+        },
+    );
+
+    yield proof(
+        'Tar encode any shape of file/directory',
+        given(Set\Either::any(
+            FFile::any(),
+            FDirectory::any(),
+        )),
+        static function($assert, $file) {
+            $clock = new Earth\Clock;
+            $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
+            $tmp = Filesystem::mount(Path::of($path));
+            $tar = Tar::encode($clock)($file);
+            $tmp->add($tar);
+
+            $exitCode = null;
+            $name = $path.$tar->name()->toString();
+            $name = \str_replace("'", "'\\''", $name);
+            \exec("tar -xf '$name' --directory=$path", result_code: $exitCode);
+            $assert->same(0, $exitCode);
+
+            if ($file instanceof File) {
+                $assert->same(
+                    $file->content()->toString(),
+                    $tmp
+                        ->get($file->name())
+                        ->keep(Instance::of(File::class))
+                        ->match(
+                            static fn($file) => $file->content()->toString(),
+                            static fn() => null,
+                        ),
+                );
+
+                return;
+            }
+
+            $assert->true($tmp->contains($file->name()));
+            // for simplicity no recursive assertions on nested directories
+            $file
+                ->all()
+                ->keep(Instance::of(File::class))
+                ->foreach(
+                    static fn($expected) => $assert->same(
+                        $expected->content()->toString(),
+                        $tmp
+                            ->get($file->name())
+                            ->keep(Instance::of(Directory::class))
+                            ->flatMap(static fn($found) => $found->get($expected->name()))
+                            ->keep(Instance::of(File::class))
+                            ->match(
+                                static fn($found) => $found->content()->toString(),
+                                static fn() => null,
+                            ),
+                    ),
+                );
         },
     );
 };
