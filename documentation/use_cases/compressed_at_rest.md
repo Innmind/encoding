@@ -25,8 +25,9 @@ $response = $serverRequest
     ->files()
     ->under('tsv')
     ->get('users')
-    ->map(static fn($file) => $file->rename(Name::of('users.tsv'))
+    ->map(static fn($file) => $file->content()
     ->map(Gzip::compress())
+    ->map(static fn($content) => File::named('users.tsv.gz', $content))
     ->map(
         static fn($file) => $os
             ->filesystem()
@@ -47,7 +48,7 @@ $response = $serverRequest
 (new ResponseSender($os->clock()))($response);
 ```
 
-This code will take any file uploaded in the key `tsv[users]`, gzip it and write it in the `path/to/stored/data/` directory under the name `users.tsv.gz` (`Gzip::compress()` automatically add the suffix `.gz`) and return a `201` HTTP response. If the upload failed it will return a `400` response.
+This code will take any file uploaded in the key `tsv[users]`, gzip it and write it in the `path/to/stored/data/` directory under the name `users.tsv.gz` and return a `201` HTTP response. If the upload failed it will return a `400` response.
 
 And for the code streaming this file:
 

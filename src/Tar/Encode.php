@@ -8,7 +8,6 @@ use Innmind\Filesystem\{
     File\Content,
     Directory,
 };
-use Innmind\MediaType\MediaType;
 use Innmind\TimeContinuum\{
     Clock,
     Format,
@@ -33,22 +32,18 @@ final class Encode
         $this->clock = $clock;
     }
 
-    public function __invoke(File|Directory $file): File
+    public function __invoke(File|Directory $file): Content
     {
-        return File::named(
-            $file->name()->toString().'.tar',
-            Content::ofChunks(
-                $this
-                    ->encode(
-                        $file->name()->str()->toEncoding(Str\Encoding::ascii),
-                        $file,
-                    )
-                    ->add(Str::of(
-                        \pack('a1024', ''),
-                        Str\Encoding::ascii,
-                    )),
-            ),
-            MediaType::of('application/x-tar'),
+        return Content::ofChunks(
+            $this
+                ->encode(
+                    $file->name()->str()->toEncoding(Str\Encoding::ascii),
+                    $file,
+                )
+                ->add(Str::of(
+                    \pack('a1024', ''),
+                    Str\Encoding::ascii,
+                )),
         );
     }
 

@@ -6,6 +6,11 @@
 
 - Requires `innmind/filesystem:~8.0`
 - Requires `innmind/time-continuum:~4.1`
+- `Innmind\Encoding\Tar\Encode::_invoke()` now only returns a file content
+
+### Removed
+
+- Ability to Gzip (de)compress a `File` or a `Sequence` of chunks
 
 ## 1.1.0 - 2024-06-26
 
