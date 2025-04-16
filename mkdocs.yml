@@ -4,6 +4,10 @@ docs_dir: documentation
 
 nav:
   - Getting Started: index.md
+  - Use cases:
+    - use-cases/backup.md
+    - use-cases/compressed-at-rest.md
+    - use-cases/http.md
 
 theme:
   name: material
