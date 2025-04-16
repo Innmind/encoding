@@ -2,12 +2,7 @@
 declare(strict_types = 1);
 
 use Innmind\Encoding\Gzip;
-use Innmind\Filesystem\{
-    Adapter\Filesystem,
-    File\Content,
-    Name,
-};
-use Innmind\Url\Path;
+use Innmind\Filesystem\File\Content;
 use Innmind\Immutable\{
     Monoid\Concat,
     Str\Encoding,
@@ -15,7 +10,7 @@ use Innmind\Immutable\{
 use Innmind\BlackBox\Set;
 
 return static function() {
-    $files = Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf');
+    $files = Set::of('fixtures/symfony.log', 'fixtures/amqp.pdf');
 
     yield proof(
         'Gzip compression reduce content size',
@@ -42,7 +37,7 @@ return static function() {
         'Gzip compression reduce chunks size',
         given($files->map(\file_get_contents(...))),
         static function($assert, $file) {
-            $content = Content::ofString($file)->chunks();
+            $content = Content::ofString($file);
             $compress = Gzip::compress();
 
             $compressed = $compress($content);
@@ -50,12 +45,14 @@ return static function() {
             $assert
                 ->number(
                     $content
+                        ->chunks()
                         ->fold(new Concat)
                         ->toEncoding(Encoding::ascii)
                         ->length(),
                 )
                 ->greaterThan(
                     $compressed
+                        ->chunks()
                         ->fold(new Concat)
                         ->toEncoding(Encoding::ascii)
                         ->length(),
@@ -65,9 +62,11 @@ return static function() {
 
     yield proof(
         'Gzip compress/decompress returns the original content',
-        given(Set\Either::any(
+        given(Set::either(
             $files->map(\file_get_contents(...)),
-            Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
+            Set::strings()
+                ->madeOf(Set::strings()->unicode()->char())
+                ->between(0, 2048),
         )),
         static function($assert, $file) {
             $original = Content::ofString($file);
@@ -85,20 +84,22 @@ return static function() {
 
     yield proof(
         'Gzip compress/decompress returns the original chunks',
-        given(Set\Either::any(
+        given(Set::either(
             $files->map(\file_get_contents(...)),
-            Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
+            Set::strings()
+                ->madeOf(Set::strings()->unicode()->char())
+                ->between(0, 2048),
         )),
         static function($assert, $file) {
-            $original = Content::ofString($file)->chunks();
+            $original = Content::ofString($file);
             $compress = Gzip::compress();
             $decompress = Gzip::decompress();
 
             $content = $decompress($compress($original));
 
             $assert->same(
-                $original->fold(new Concat)->toString(),
-                $content->fold(new Concat)->toString(),
+                $original->chunks()->fold(new Concat)->toString(),
+                $content->chunks()->fold(new Concat)->toString(),
             );
         },
     );
@@ -116,55 +117,6 @@ return static function() {
             $assert->same(
                 $compressed1->toString(),
                 $compressed2->toString(),
-            );
-        },
-    );
-
-    yield proof(
-        'Gzip file compression',
-        given(
-            $files
-                ->map(static fn($name) => \substr($name, 9)) // removes 'fixtures/'
-                ->map(Name::of(...)),
-        ),
-        static function($assert, $name) {
-            $adapter = Filesystem::mount(Path::of('fixtures/'));
-            $original = $adapter->get($name)->match(
-                static fn($file) => $file,
-                static fn() => null,
-            );
-
-            $assert->not()->null($original);
-
-            $compress = Gzip::compress();
-            $decompress = Gzip::decompress();
-
-            $compressed = $compress($original);
-
-            $assert
-                ->string($compressed->name()->toString())
-                ->startsWith($name->toString())
-                ->endsWith('.gz');
-            $assert->same(
-                'application/gzip',
-                $compressed->mediaType()->toString(),
-            );
-            $assert
-                ->number($compressed->content()->size()->match(
-                    static fn($size) => $size->toInt(),
-                    static fn() => null,
-                ))
-                ->lessThan($original->content()->size()->match(
-                    static fn($size) => $size->toInt(),
-                    static fn() => null,
-                ));
-
-            $decompressed = $decompress($compressed);
-
-            $assert->same($name->toString(), $decompressed->name()->toString());
-            $assert->same(
-                $original->content()->toString(),
-                $decompressed->content()->toString(),
             );
         },
     );

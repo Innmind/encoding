@@ -15,6 +15,7 @@ final class Context
 
     private function __construct()
     {
+        /** @psalm-suppress PossiblyFalsePropertyAssignmentValue */
         $this->context = \deflate_init(
             \ZLIB_ENCODING_GZIP,
             ['level' => 9],
@@ -44,6 +45,7 @@ final class Context
 
     public function finish(): Str
     {
+        /** @psalm-suppress PossiblyFalseArgument */
         return Str::of(\deflate_add(
             $this->context,
             '',

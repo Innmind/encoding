@@ -8,8 +8,10 @@ use Innmind\Filesystem\{
     File\Content,
     Directory,
 };
-use Innmind\MediaType\MediaType;
-use Innmind\TimeContinuum\Clock;
+use Innmind\TimeContinuum\{
+    Clock,
+    Format,
+};
 use Innmind\Immutable\{
     Str,
     Sequence,
@@ -30,22 +32,18 @@ final class Encode
         $this->clock = $clock;
     }
 
-    public function __invoke(File|Directory $file): File
+    public function __invoke(File|Directory $file): Content
     {
-        return File::named(
-            $file->name()->toString().'.tar',
-            Content::ofChunks(
-                $this
-                    ->encode(
-                        $file->name()->str()->toEncoding(Str\Encoding::ascii),
-                        $file,
-                    )
-                    ->add(Str::of(
-                        \pack('a1024', ''),
-                        Str\Encoding::ascii,
-                    )),
-            ),
-            MediaType::of('application/x-tar'),
+        return Content::ofChunks(
+            $this
+                ->encode(
+                    $file->name()->str()->toEncoding(Str\Encoding::ascii),
+                    $file,
+                )
+                ->add(Str::of(
+                    \pack('a1024', ''),
+                    Str\Encoding::ascii,
+                )),
         );
     }
 
@@ -157,7 +155,7 @@ final class Encode
                 \sprintf('%07s', \decoct(0)), // user id
                 \sprintf('%07s', \decoct(0)), // group id
                 \sprintf('%011s', \decoct($size)), // file size
-                \sprintf('%011s', \decoct((int) ($this->clock->now()->milliseconds() / 1000))), // file last modification time
+                \sprintf('%011s', \decoct((int) $this->clock->now()->format(Format::of('U')))), // file last modification time
             ),
             Str\Encoding::ascii,
         );

@@ -17,16 +17,12 @@ composer require innmind/encoding
 
 ## Usage
 
-Take a look at the [documentation](documentation/README.md) for a more in-depth understanding of the possibilities.
-
-### Creating an archive of a directory
-
 ```php
 use Innmind\Filesystem\{
     Adapter\Filesystem,
     Name,
 };
-use Innmind\TimeContinuum\Earth;
+use Innmind\TimeContinuum\Clock;
 use Innmind\Url\Path;
 use Innmind\Encoding\{
     Gzip,
@@ -36,7 +32,7 @@ use Innmind\Encoding\{
 $adapter = Filesystem::mount(Path::of('some/directory/'));
 $tar = $adapter
     ->get(Name::of('data'))
-    ->map(Tar::encode(new Earth\Clock))
+    ->map(Tar::encode(Clock::live()))
     ->map(Gzip::compress())
     ->match(
         static fn($file) => $file,
@@ -44,4 +40,8 @@ $tar = $adapter
     );
 ```
 
-Here `$tar` represents a `.tar.gz` file containing all the files and directories from `sime/directory/data/`, unless the `data` doesn't exist then it is `null`.
+Here `$tar` represents a `.tar.gz` file content containing all the files and directories from `some/directory/data/`, unless the `data` doesn't exist then it is `null`.
+
+## Documentation
+
+Full documentation can be found at <https://innmind.org/encoding/>.

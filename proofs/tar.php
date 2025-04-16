@@ -8,7 +8,7 @@ use Innmind\Filesystem\{
     File,
     Directory,
 };
-use Innmind\TimeContinuum\Earth;
+use Innmind\TimeContinuum\Clock;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Str,
@@ -23,9 +23,9 @@ use Fixtures\Innmind\Filesystem\{
 return static function() {
     yield proof(
         'Tar encoding a single file',
-        given(Set\Elements::of('amqp.pdf', 'symfony.log')),
+        given(Set::of('amqp.pdf', 'symfony.log')),
         static function($assert, $name) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('fixtures/'));
@@ -37,18 +37,12 @@ return static function() {
                     static fn($file) => $file,
                     static fn() => null,
                 );
-
-            $assert
-                ->string($tar->name()->toString())
-                ->startsWith('other-')
-                ->contains($name)
-                ->endsWith('.tar');
-            $assert->same('application/x-tar', $tar->mediaType()->toString());
+            $tar = File::named('test.tar', $tar);
 
             $tmp->add($tar);
 
             $exitCode = null;
-            \exec("tar -xf $path/other-$name.tar --directory=$path", result_code: $exitCode);
+            \exec("tar -xf $path/test.tar --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             $assert->same(
@@ -71,7 +65,7 @@ return static function() {
     yield test(
         'Tar encoding a directory',
         static function($assert) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('./'));
@@ -83,8 +77,7 @@ return static function() {
                     static fn() => null,
                 );
 
-            $assert->same('fixtures.tar', $tar->name()->toString());
-            $assert->same('application/x-tar', $tar->mediaType()->toString());
+            $tar = File::named('fixtures.tar', $tar);
 
             $tmp->add($tar);
 
@@ -134,10 +127,12 @@ return static function() {
     yield proof(
         'Tar supports names longer than 100 characters',
         given(
-            Set\Strings::madeOf(Set\Chars::alphanumerical())
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(101, 251) // not 255 because it needs to append '.tar'
                 ->map(Name::of(...)),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(200, 255)
                 ->map(Name::of(...)),
         ),
@@ -145,7 +140,7 @@ return static function() {
             // we use 2 long names to reach a path longer than 512 to make sure
             // the chunking of the path in the link works properly
 
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('./'));
@@ -159,10 +154,12 @@ return static function() {
                     static fn() => null,
                 );
 
+            $tar = File::named('names.tar', $tar);
+
             $tmp->add($tar);
 
             $exitCode = null;
-            \exec("tar -xf $path/{$name1->toString()}.tar --directory=$path", result_code: $exitCode);
+            \exec("tar -xf $path/names.tar --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             $assert->true(
@@ -197,7 +194,7 @@ return static function() {
     yield proof(
         'Tar encode any shape of file/directory',
         given(
-            Set\Either::any(
+            Set::either(
                 FFile::any(),
                 FDirectory::any(),
             )
@@ -222,16 +219,19 @@ return static function() {
                 ),
         ),
         static function($assert, $file) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
+
+            // make sure to avoid conflicts when trying to unarchive
+            $tmp->remove($file->name());
+
             $tar = Tar::encode($clock)($file);
+            $tar = File::named('shape.tar', $tar);
             $tmp->add($tar);
 
             $exitCode = null;
-            $name = $path.$tar->name()->toString();
-            $name = \str_replace("'", "'\\''", $name);
-            \exec("tar -xf '$name' --directory=$path", result_code: $exitCode);
+            \exec("tar -xf '$path/shape.tar' --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             if ($file instanceof File) {
