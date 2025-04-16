@@ -227,6 +227,10 @@ return static function() {
             $clock = new Earth\Clock;
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
+
+            // make sure to avoid conflicts when trying to unarchive
+            $tmp->remove($file->name());
+
             $tar = Tar::encode($clock)($file);
             $tmp->add($tar);
 
