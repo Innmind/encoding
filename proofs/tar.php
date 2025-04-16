@@ -8,7 +8,7 @@ use Innmind\Filesystem\{
     File,
     Directory,
 };
-use Innmind\TimeContinuum\Earth;
+use Innmind\TimeContinuum\Clock;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Str,
@@ -25,7 +25,7 @@ return static function() {
         'Tar encoding a single file',
         given(Set::of('amqp.pdf', 'symfony.log')),
         static function($assert, $name) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('fixtures/'));
@@ -71,7 +71,7 @@ return static function() {
     yield test(
         'Tar encoding a directory',
         static function($assert) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('./'));
@@ -147,7 +147,7 @@ return static function() {
             // we use 2 long names to reach a path longer than 512 to make sure
             // the chunking of the path in the link works properly
 
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $adapter = Filesystem::mount(Path::of('./'));
@@ -224,7 +224,7 @@ return static function() {
                 ),
         ),
         static function($assert, $file) {
-            $clock = new Earth\Clock;
+            $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
             $tmp = Filesystem::mount(Path::of($path));
             $tar = Tar::encode($clock)($file);
