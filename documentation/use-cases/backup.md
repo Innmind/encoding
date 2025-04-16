@@ -49,7 +49,7 @@ $archive = Gzip::compress()(
 );
 ```
 
-Up to this point `$archive` represents a file named `archive.tar.gz` but no real operation has been done. For the real compression to happen you need to _unwrap_ the file either by persisting to the filesystem, sending it through HTTP/AMQP or returning it as an HTTP response. Here's an example of a simple file responding to an HTTP request:
+Up to this point `$archive` represents a file content but no real operation has been done. For the real compression to happen you need to _unwrap_ the file either by persisting to the filesystem, sending it through HTTP/AMQP or returning it as an HTTP response. Here's an example of a simple file responding to an HTTP request:
 
 ```php
 use Innmind\Http\{
@@ -63,13 +63,13 @@ use Innmind\Http\{
 
 $archive = /* see above */;
 
-(new ResponseSender($os->clock))(Response::of(
+(new ResponseSender($os->clock()))(Response::of(
     StatusCode::ok,
     ProtocolVersion::v11,
     Headers::of(
         ContentType::of('application', 'octet-stream')
     ),
-    $archive->content(),
+    $archive,
 ));
 ```
 
