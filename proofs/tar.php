@@ -37,18 +37,12 @@ return static function() {
                     static fn($file) => $file,
                     static fn() => null,
                 );
-
-            $assert
-                ->string($tar->name()->toString())
-                ->startsWith('other-')
-                ->contains($name)
-                ->endsWith('.tar');
-            $assert->same('application/x-tar', $tar->mediaType()->toString());
+            $tar = File::named('test.tar', $tar);
 
             $tmp->add($tar);
 
             $exitCode = null;
-            \exec("tar -xf $path/other-$name.tar --directory=$path", result_code: $exitCode);
+            \exec("tar -xf $path/test.tar --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             $assert->same(
@@ -83,8 +77,7 @@ return static function() {
                     static fn() => null,
                 );
 
-            $assert->same('fixtures.tar', $tar->name()->toString());
-            $assert->same('application/x-tar', $tar->mediaType()->toString());
+            $tar = File::named('fixtures.tar', $tar);
 
             $tmp->add($tar);
 
@@ -161,10 +154,12 @@ return static function() {
                     static fn() => null,
                 );
 
+            $tar = File::named('names.tar', $tar);
+
             $tmp->add($tar);
 
             $exitCode = null;
-            \exec("tar -xf $path/{$name1->toString()}.tar --directory=$path", result_code: $exitCode);
+            \exec("tar -xf $path/names.tar --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             $assert->true(
@@ -232,12 +227,11 @@ return static function() {
             $tmp->remove($file->name());
 
             $tar = Tar::encode($clock)($file);
+            $tar = File::named('shape.tar', $tar);
             $tmp->add($tar);
 
             $exitCode = null;
-            $name = $path.$tar->name()->toString();
-            $name = \str_replace("'", "'\\''", $name);
-            \exec("tar -xf '$name' --directory=$path", result_code: $exitCode);
+            \exec("tar -xf '$path/shape.tar' --directory=$path", result_code: $exitCode);
             $assert->same(0, $exitCode);
 
             if ($file instanceof File) {

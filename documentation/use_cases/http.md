@@ -22,16 +22,17 @@ $os
     ->filesystem()
     ->mount(Path::of('path/to/stored/data/'))
     ->get(Name::of('somefile.txt'))
+    ->map(static fn($file) => $file->content());
     ->map(Gzip::compress())
     ->match(
-        static fn($file) => $http(Request::of(
+        static fn($content) => $http(Request::of(
             Url::of('https://some-app.tld/upload'),
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
                 ContentEncoding::of('gzip'),
             ),
-            $file->content(),
+            $content,
         )),
         static fn() => null,
     );

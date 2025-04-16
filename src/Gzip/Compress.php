@@ -7,11 +7,7 @@ use Innmind\Encoding\Gzip\Compress\{
     Context,
     Chunk,
 };
-use Innmind\Filesystem\{
-    File,
-    File\Content,
-};
-use Innmind\MediaType\MediaType;
+use Innmind\Filesystem\File\Content;
 use Innmind\Immutable\{
     Sequence,
     Str,
@@ -26,24 +22,9 @@ final class Compress
     {
     }
 
-    /**
-     * @template T of File|Content|Sequence<Str>
-     *
-     * @param T $content
-     *
-     * @return T
-     */
-    public function __invoke(File|Content|Sequence $content): File|Content|Sequence
+    public function __invoke(Content $content): Content
     {
-        /**
-         * @psalm-suppress PossiblyInvalidArgument For some reason it doesn't understand the Sequence check
-         * @var T
-         */
-        return match (true) {
-            $content instanceof File => $this->compressFile($content),
-            $content instanceof Content => $this->compressContent($content),
-            $content instanceof Sequence => $this->compressChunks($content),
-        };
+        return Content::ofChunks($this->compressChunks($content->chunks()));
     }
 
     /**
@@ -52,20 +33,6 @@ final class Compress
     public static function max(): self
     {
         return new self;
-    }
-
-    private function compressFile(File $file): File
-    {
-        return File::named(
-            $file->name()->toString().'.gz',
-            $this->compressContent($file->content()),
-            MediaType::of('application/gzip'),
-        );
-    }
-
-    private function compressContent(Content $content): Content
-    {
-        return Content::ofChunks($this->compressChunks($content->chunks()));
     }
 
     /**
