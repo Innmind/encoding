@@ -23,7 +23,7 @@ use Fixtures\Innmind\Filesystem\{
 return static function() {
     yield proof(
         'Tar encoding a single file',
-        given(Set\Elements::of('amqp.pdf', 'symfony.log')),
+        given(Set::of('amqp.pdf', 'symfony.log')),
         static function($assert, $name) {
             $clock = new Earth\Clock;
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
@@ -134,10 +134,12 @@ return static function() {
     yield proof(
         'Tar supports names longer than 100 characters',
         given(
-            Set\Strings::madeOf(Set\Chars::alphanumerical())
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(101, 251) // not 255 because it needs to append '.tar'
                 ->map(Name::of(...)),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(200, 255)
                 ->map(Name::of(...)),
         ),
@@ -197,7 +199,7 @@ return static function() {
     yield proof(
         'Tar encode any shape of file/directory',
         given(
-            Set\Either::any(
+            Set::either(
                 FFile::any(),
                 FDirectory::any(),
             )

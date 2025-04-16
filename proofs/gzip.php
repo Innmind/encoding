@@ -15,7 +15,7 @@ use Innmind\Immutable\{
 use Innmind\BlackBox\Set;
 
 return static function() {
-    $files = Set\Elements::of('fixtures/symfony.log', 'fixtures/amqp.pdf');
+    $files = Set::of('fixtures/symfony.log', 'fixtures/amqp.pdf');
 
     yield proof(
         'Gzip compression reduce content size',
@@ -65,9 +65,11 @@ return static function() {
 
     yield proof(
         'Gzip compress/decompress returns the original content',
-        given(Set\Either::any(
+        given(Set::either(
             $files->map(\file_get_contents(...)),
-            Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
+            Set::strings()
+                ->madeOf(Set::strings()->unicode()->char())
+                ->between(0, 2048),
         )),
         static function($assert, $file) {
             $original = Content::ofString($file);
@@ -85,9 +87,11 @@ return static function() {
 
     yield proof(
         'Gzip compress/decompress returns the original chunks',
-        given(Set\Either::any(
+        given(Set::either(
             $files->map(\file_get_contents(...)),
-            Set\Strings::madeOf(Set\Unicode::any())->between(0, 2048),
+            Set::strings()
+                ->madeOf(Set::strings()->unicode()->char())
+                ->between(0, 2048),
         )),
         static function($assert, $file) {
             $original = Content::ofString($file)->chunks();
