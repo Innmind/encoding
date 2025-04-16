@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires `innmind/filesystem:~8.0`
+- Requires `innmind/time-continuum:~4.1`
+
 ## 1.1.0 - 2024-06-26
 
 ### Changed
