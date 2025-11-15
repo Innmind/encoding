@@ -15,7 +15,7 @@
         "issues": "http://github.com/innmind/encoding/issues"
     },
     "require": {
-        "php": "~8.2",
+        "php": "~8.4",
         "innmind/immutable": "~5.7",
         "innmind/filesystem": "~8.0",
         "innmind/time-continuum": "~4.1"
