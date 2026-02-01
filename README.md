@@ -6,7 +6,7 @@
 
 This packages allows to encode and compress files and directories without the need for them to be written to the filesystem and never loaded entirely in memory.
 
-> **Note**
+> [!NOTE]
 > Each file contained in a `tar` file can't exceed an 8Go size.
 
 ## Installation
