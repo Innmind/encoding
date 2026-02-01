@@ -44,7 +44,7 @@ return static function() {
                 );
             $tar = File::named('test.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/test.tar --directory=$path", result_code: $exitCode);
@@ -88,7 +88,7 @@ return static function() {
 
             $tar = File::named('fixtures.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/fixtures.tar --directory=$path", result_code: $exitCode);
@@ -169,7 +169,7 @@ return static function() {
 
             $tar = File::named('names.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/names.tar --directory=$path", result_code: $exitCode);
@@ -239,11 +239,11 @@ return static function() {
                 ->unwrap();
 
             // make sure to avoid conflicts when trying to unarchive
-            $tmp->remove($file->name());
+            $_ = $tmp->remove($file->name())->unwrap();
 
             $tar = Tar::encode($clock)($file);
             $tar = File::named('shape.tar', $tar);
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf '$path/shape.tar' --directory=$path", result_code: $exitCode);
