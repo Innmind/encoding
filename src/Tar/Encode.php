@@ -8,7 +8,7 @@ use Innmind\Filesystem\{
     File\Content,
     Directory,
 };
-use Innmind\TimeContinuum\{
+use Innmind\Time\{
     Clock,
     Format,
 };

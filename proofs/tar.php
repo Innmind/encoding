@@ -9,7 +9,7 @@ use Innmind\Filesystem\{
     Directory,
     Recover,
 };
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Str,
@@ -266,7 +266,7 @@ return static function() {
 
             $assert->true($tmp->contains($file->name()));
             // for simplicity no recursive assertions on nested directories
-            $file
+            $_ = $file
                 ->all()
                 ->keep(Instance::of(File::class))
                 ->foreach(
