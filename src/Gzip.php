@@ -12,6 +12,7 @@ final class Gzip
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function compress(): Gzip\Compress
     {
         return Gzip\Compress::max();
@@ -20,6 +21,7 @@ final class Gzip
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function decompress(): Gzip\Decompress
     {
         return Gzip\Decompress::max();
