@@ -21,6 +21,7 @@ $http = $os->remote()->http();
 $os
     ->filesystem()
     ->mount(Path::of('path/to/stored/data/'))
+    ->unwrap()
     ->get(Name::of('somefile.txt'))
     ->map(static fn($file) => $file->content());
     ->map(Gzip::compress())

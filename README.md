@@ -19,17 +19,17 @@ composer require innmind/encoding
 
 ```php
 use Innmind\Filesystem\{
-    Adapter\Filesystem,
+    Adapter,
     Name,
 };
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 use Innmind\Url\Path;
 use Innmind\Encoding\{
     Gzip,
     Tar,
 };
 
-$adapter = Filesystem::mount(Path::of('some/directory/'));
+$adapter = Adapter::mount(Path::of('some/directory/'))->unwrap();
 $tar = $adapter
     ->get(Name::of('data'))
     ->map(Tar::encode(Clock::live()))
