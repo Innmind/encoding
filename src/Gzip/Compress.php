@@ -22,6 +22,7 @@ final class Compress
     {
     }
 
+    #[\NoDiscard]
     public function __invoke(Content $content): Content
     {
         return Content::ofChunks($this->compressChunks($content->chunks()));
@@ -30,6 +31,7 @@ final class Compress
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function max(): self
     {
         return new self;

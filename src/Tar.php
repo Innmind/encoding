@@ -14,6 +14,7 @@ final class Tar
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function encode(Clock $clock): Tar\Encode
     {
         return Tar\Encode::of($clock);
