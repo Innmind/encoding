@@ -7,6 +7,7 @@ use Innmind\Filesystem\{
     Name,
     File,
     Directory,
+    Recover,
 };
 use Innmind\TimeContinuum\Clock;
 use Innmind\Url\Path;
@@ -27,8 +28,12 @@ return static function() {
         static function($assert, $name) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Adapter::mount(Path::of($path))->unwrap();
-            $adapter = Adapter::mount(Path::of('fixtures/'))->unwrap();
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('fixtures/'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of($name))
                 ->map(static fn($file) => $file->rename(Name::of('other-'.$name)))
@@ -67,8 +72,12 @@ return static function() {
         static function($assert) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Adapter::mount(Path::of($path))->unwrap();
-            $adapter = Adapter::mount(Path::of('./'))->unwrap();
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('./'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of('fixtures'))
                 ->map(Tar::encode($clock))
@@ -142,8 +151,12 @@ return static function() {
 
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Adapter::mount(Path::of($path))->unwrap();
-            $adapter = Adapter::mount(Path::of('./'))->unwrap();
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('./'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of('fixtures'))
                 ->map(Directory::of($name2)->add(...))
@@ -221,7 +234,9 @@ return static function() {
         static function($assert, $file) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Adapter::mount(Path::of($path))->unwrap();
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
 
             // make sure to avoid conflicts when trying to unarchive
             $tmp->remove($file->name());
