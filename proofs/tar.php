@@ -3,12 +3,13 @@ declare(strict_types = 1);
 
 use Innmind\Encoding\Tar;
 use Innmind\Filesystem\{
-    Adapter\Filesystem,
+    Adapter,
     Name,
     File,
     Directory,
+    Recover,
 };
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 use Innmind\Url\Path;
 use Innmind\Immutable\{
     Str,
@@ -27,8 +28,12 @@ return static function() {
         static function($assert, $name) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Filesystem::mount(Path::of($path));
-            $adapter = Filesystem::mount(Path::of('fixtures/'));
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('fixtures/'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of($name))
                 ->map(static fn($file) => $file->rename(Name::of('other-'.$name)))
@@ -39,7 +44,7 @@ return static function() {
                 );
             $tar = File::named('test.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/test.tar --directory=$path", result_code: $exitCode);
@@ -67,8 +72,12 @@ return static function() {
         static function($assert) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Filesystem::mount(Path::of($path));
-            $adapter = Filesystem::mount(Path::of('./'));
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('./'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of('fixtures'))
                 ->map(Tar::encode($clock))
@@ -79,7 +88,7 @@ return static function() {
 
             $tar = File::named('fixtures.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/fixtures.tar --directory=$path", result_code: $exitCode);
@@ -142,8 +151,12 @@ return static function() {
 
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Filesystem::mount(Path::of($path));
-            $adapter = Filesystem::mount(Path::of('./'));
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
+            $adapter = Adapter::mount(Path::of('./'))
+                ->recover(Recover::mount(...))
+                ->unwrap();
             $tar = $adapter
                 ->get(Name::of('fixtures'))
                 ->map(Directory::of($name2)->add(...))
@@ -156,7 +169,7 @@ return static function() {
 
             $tar = File::named('names.tar', $tar);
 
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf $path/names.tar --directory=$path", result_code: $exitCode);
@@ -221,14 +234,16 @@ return static function() {
         static function($assert, $file) {
             $clock = Clock::live();
             $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
-            $tmp = Filesystem::mount(Path::of($path));
+            $tmp = Adapter::mount(Path::of($path))
+                ->recover(Recover::mount(...))
+                ->unwrap();
 
             // make sure to avoid conflicts when trying to unarchive
-            $tmp->remove($file->name());
+            $_ = $tmp->remove($file->name())->unwrap();
 
             $tar = Tar::encode($clock)($file);
             $tar = File::named('shape.tar', $tar);
-            $tmp->add($tar);
+            $_ = $tmp->add($tar)->unwrap();
 
             $exitCode = null;
             \exec("tar -xf '$path/shape.tar' --directory=$path", result_code: $exitCode);
@@ -251,7 +266,7 @@ return static function() {
 
             $assert->true($tmp->contains($file->name()));
             // for simplicity no recursive assertions on nested directories
-            $file
+            $_ = $file
                 ->all()
                 ->keep(Instance::of(File::class))
                 ->foreach(

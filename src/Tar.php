@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\Encoding;
 
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 
 final class Tar
 {
