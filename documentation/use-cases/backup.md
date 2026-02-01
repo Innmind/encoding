@@ -25,9 +25,13 @@ $os = Factory::build();
 $data = $os
     ->filesystem()
     ->mount(Path::of('path/to/stored/data'))
+    ->unwrap()
     ->root()
     ->rename(Name::of('data'));
-$sql = $os->remote()->sql(Url::of('mysql://{user}:{password}@localhost:3306/{database}'));
+$sql = $os
+    ->remote()
+    ->sql(Url::of('mysql://{user}:{password}@localhost:3306/{database}'))
+    ->unwrap();
 $users = $sql(SQL::onDemand('SELECT * FROM users'))
     ->map(static fn($row) => \implode(
         "\t",
@@ -53,7 +57,7 @@ Up to this point `$archive` represents a file content but no real operation has 
 
 ```php
 use Innmind\Http\{
-    ResponseSender,
+    Response\Sender\Native as ResponseSender,
     Response,
     Response\StatusCode,
     ProtocolVersion,
@@ -63,7 +67,7 @@ use Innmind\Http\{
 
 $archive = /* see above */;
 
-(new ResponseSender($os->clock()))(Response::of(
+ResponseSender::of($os->clock())(Response::of(
     StatusCode::ok,
     ProtocolVersion::v11,
     Headers::of(

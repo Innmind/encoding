@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Innmind\Encoding;
 
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 
 final class Tar
 {
@@ -14,6 +14,7 @@ final class Tar
     /**
      * @psalm-pure
      */
+    #[\NoDiscard]
     public static function encode(Clock $clock): Tar\Encode
     {
         return Tar\Encode::of($clock);

@@ -15,7 +15,7 @@ use Innmind\Url\Path;
 use Innmind\Http\{
     Response,
     Response\StatusCode,
-    ResponseSender,
+    Response\Sender\Native as ResponseSender,
 };
 
 $os = Factory::build();
@@ -25,14 +25,16 @@ $response = $serverRequest
     ->files()
     ->under('tsv')
     ->get('users')
-    ->map(static fn($file) => $file->content()
+    ->map(static fn($file) => $file->content())
     ->map(Gzip::compress())
     ->map(static fn($content) => File::named('users.tsv.gz', $content))
     ->map(
         static fn($file) => $os
             ->filesystem()
             ->mount(Path::of('path/to/stored/data/'))
-            ->add($file)),
+            ->unwrap()
+            ->add($file)
+            ->unwrap(),
     )
     ->match(
         static fn() => Response::of(
@@ -45,7 +47,7 @@ $response = $serverRequest
         ),
     );
 
-(new ResponseSender($os->clock()))($response);
+ResponseSender::of($os->clock())($response);
 ```
 
 This code will take any file uploaded in the key `tsv[users]`, gzip it and write it in the `path/to/stored/data/` directory under the name `users.tsv.gz` and return a `201` HTTP response. If the upload failed it will return a `400` response.
@@ -61,7 +63,7 @@ use Innmind\Url\Path;
 use Innmind\Http\{
     Response,
     Response\StatusCode,
-    ResponseSender,
+    Response\Sender\Native as ResponseSender,
     Headers,
     Header\ContentType,
     Header\ContentEncoding,
@@ -84,6 +86,7 @@ $acceptGzip = $serverRequest
 $response = $os
     ->filesystem()
     ->mount(Path::of('path/to/stored/data/'))
+    ->unwrap()
     ->get(Name::of('users.tsv.gz'))
     ->map(static fn($file) => match ($acceptGzip) {
         true => Response::of(
@@ -112,7 +115,7 @@ $response = $os
         ),
     );
 
-(new ResponseSender($os->clock()))($response);
+ResponseSender::of($os->clock())($response);
 ```
 
 Here we try to load the `users.tsv.gz` file, we check if the caller accepts a gzipped content, if so we return the file as is via a `200` HTTP response and if not we decompress the file and return it. And if the file doesn't exist we return a `400` response.

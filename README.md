@@ -6,7 +6,7 @@
 
 This packages allows to encode and compress files and directories without the need for them to be written to the filesystem and never loaded entirely in memory.
 
-> **Note**
+> [!NOTE]
 > Each file contained in a `tar` file can't exceed an 8Go size.
 
 ## Installation
@@ -19,17 +19,17 @@ composer require innmind/encoding
 
 ```php
 use Innmind\Filesystem\{
-    Adapter\Filesystem,
+    Adapter,
     Name,
 };
-use Innmind\TimeContinuum\Clock;
+use Innmind\Time\Clock;
 use Innmind\Url\Path;
 use Innmind\Encoding\{
     Gzip,
     Tar,
 };
 
-$adapter = Filesystem::mount(Path::of('some/directory/'));
+$adapter = Adapter::mount(Path::of('some/directory/'))->unwrap();
 $tar = $adapter
     ->get(Name::of('data'))
     ->map(Tar::encode(Clock::live()))

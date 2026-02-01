@@ -46,14 +46,14 @@ return static function() {
                 ->number(
                     $content
                         ->chunks()
-                        ->fold(new Concat)
+                        ->fold(Concat::monoid)
                         ->toEncoding(Encoding::ascii)
                         ->length(),
                 )
                 ->greaterThan(
                     $compressed
                         ->chunks()
-                        ->fold(new Concat)
+                        ->fold(Concat::monoid)
                         ->toEncoding(Encoding::ascii)
                         ->length(),
                 );
@@ -98,8 +98,8 @@ return static function() {
             $content = $decompress($compress($original));
 
             $assert->same(
-                $original->chunks()->fold(new Concat)->toString(),
-                $content->chunks()->fold(new Concat)->toString(),
+                $original->chunks()->fold(Concat::monoid)->toString(),
+                $content->chunks()->fold(Concat::monoid)->toString(),
             );
         },
     );
