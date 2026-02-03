@@ -114,6 +114,9 @@ final class Encode
             ->content()
             ->chunks()
             ->map(static fn($chunk) => $chunk->toEncoding(Str\Encoding::ascii))
+            ->map(static fn($chunk) => $chunk->map(
+                static fn($value) => \mb_convert_encoding($value, 'UTF-8'),
+            ))
             ->aggregate(static fn(Str $a, Str $b) => $a->append($b)->chunk(512))
             ->flatMap(static fn($str) => $str->chunk(512)) // in case there is only one line
             ->map(static fn($chunk) => \pack('a512', $chunk->toString()))

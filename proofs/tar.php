@@ -285,4 +285,40 @@ return static function() {
                 );
         },
     );
+
+    yield test(
+        'Tar encode files with utf8 content',
+        static function($assert) {
+            $clock = Clock::live();
+            $path = \rtrim(\sys_get_temp_dir(), '/').'/innmind/encoding/';
+            $tmp = Filesystem::mount(Path::of($path));
+
+            $file = File::named(
+                '._+',
+                File\Content::ofString('›'),
+            );
+
+            // make sure to avoid conflicts when trying to unarchive
+            $tmp->remove($file->name());
+
+            $tar = Tar::encode($clock)($file);
+            $tar = File::named('shape.tar', $tar);
+            $tmp->add($tar);
+
+            $exitCode = null;
+            \exec("tar -xf '$path/shape.tar' --directory=$path", result_code: $exitCode);
+            // $assert->same(0, $exitCode);
+
+            $assert->same(
+                $file->content()->toString(),
+                $tmp
+                    ->get($file->name())
+                    ->keep(Instance::of(File::class))
+                    ->match(
+                        static fn($file) => $file->content()->toString(),
+                        static fn() => null,
+                    ),
+            );
+        },
+    )->tag(\Innmind\BlackBox\Tag::wip);
 };
