@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires PHP `8.5`
+
 ## 3.0.0 - 2026-02-01
 
 ### Changed
