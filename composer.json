@@ -2,7 +2,11 @@
     "name": "innmind/encoding",
     "type": "library",
     "description": "",
-    "keywords": ["encoding", "gzip", "deflate"],
+    "keywords": [
+        "encoding",
+        "gzip",
+        "deflate"
+    ],
     "homepage": "http://github.com/innmind/encoding",
     "license": "MIT",
     "authors": [
